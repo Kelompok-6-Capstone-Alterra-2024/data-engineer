@@ -1,0 +1,43 @@
+###
+### A complete description of a Prefect Deployment for flow 'etl-flow'
+###
+name: alterra
+description: null
+version: 7b8f2ff0a078bd5d03be3d3dc1fa3888
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: null
+tags: []
+parameters: {}
+schedule: null
+schedules: []
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: etl-flow
+manifest_path: null
+storage: null
+path: C:\Users\muham\Documents\MSIB - Alterra Academy\prefect_capstone
+entrypoint: etl.py:etl_flow
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties: {}
+  required: null
+  definitions: null
+timestamp: '2024-06-16T17:03:00.887238+00:00'
+triggers: []
+enforce_parameter_schema: null
