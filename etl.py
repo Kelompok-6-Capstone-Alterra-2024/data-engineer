@@ -1,3 +1,5 @@
+# IMPORT LIBRARY
+
 import pandas as pd
 import MySQLdb
 import os
@@ -98,7 +100,6 @@ def transform_data(data_frames):
             row['experience'],
             row['practice_location'],
             row['practice_city'],
-            # row['practice_province'],
             row['fee'],
             row['specialist'],
         ]
@@ -203,9 +204,13 @@ def transform_data(data_frames):
             row['message'],
         ]
 
+    # MENYESUAIKAN TIPE DATA
+    # object -> datetime
     df_dim_user_moods['date'] = pd.to_datetime(df_dim_user_moods['date'])
+    # float -> int
     df_dim_consultations['complaint_id'] = pd.to_numeric(df_dim_consultations['complaint_id'], errors='coerce').astype('Int64')
 
+    # Handle karakter spesial
     df_dim_users['name'] = df_dim_users['name'].replace(to_replace=r'[^a-zA-Z\s]', value='', regex=True)
     df_dim_users['address'] = df_dim_users['address'].replace(to_replace=r'[^a-zA-Z0-9\s.,]', value='', regex=True)
     df_dim_doctors['name'] = df_dim_doctors['name'].replace(to_replace=r'[^a-zA-Z\s]', value='', regex=True)
@@ -226,36 +231,6 @@ def transform_data(data_frames):
     df_post_likes = data_frames['post_likes']
     # df_post_views = data_frames['post_views']
 
-    # # Transform fact table for articles
-    # total_likes_articles = df_article_likes.groupby('article_id').size().reset_index(name='total_like')
-    # user_ids_articles = df_article_likes.groupby('article_id')['user_id'].first().reset_index()
-    # df_temp_articles = pd.merge(total_likes_articles, user_ids_articles, on='article_id')
-    # df_fact_article = pd.merge(df_temp_articles, df_articles[['id', 'view_count']], left_on='article_id', right_on='id').drop(columns=['id'])
-
-    # # Transform fact table for music
-    # total_likes_music = df_music_likes.groupby('music_id').size().reset_index(name='total_like')
-    # user_ids_music = df_music_likes.groupby('music_id')['user_id'].first().reset_index()
-    # df_temp_music = pd.merge(total_likes_music, user_ids_music, on='music_id')
-    # df_fact_music = pd.merge(df_temp_music, df_musics[['id', 'view_count']], left_on='music_id', right_on='id').drop(columns=['id'])
-
-    # # Transform fact table for inspirational stories
-    # total_likes_stories = df_story_likes.groupby('story_id').size().reset_index(name='total_like')
-    # user_ids_stories = df_story_likes.groupby('story_id')['user_id'].first().reset_index()
-    # df_temp_stories = pd.merge(total_likes_stories, user_ids_stories, on='story_id')
-    # df_fact_inspirational_stories = pd.merge(df_temp_stories, df_stories[['id', 'view_count']], left_on='story_id', right_on='id').drop(columns=['id'])
-    
-    # # Transform fact table for posts
-    # total_likes_posts = df_post_likes.groupby('post_id').size().reset_index(name='total_like')
-    # user_ids_posts = df_post_likes.groupby('post_id')['user_id'].first().reset_index()
-    # df_temp_posts = pd.merge(total_likes_posts, user_ids_posts, on='post_id')
-    # df_fact_post = pd.merge(df_temp_posts, df_posts[['id']], left_on='post_id', right_on='id').drop(columns=['id'])
-    
-    # df_fact_article['view_count'] = pd.to_numeric(df_fact_article['view_count'], errors='coerce').astype('Int64')
-    # df_fact_music['view_count'] = pd.to_numeric(df_fact_music['view_count'], errors='coerce').astype('Int64')
-    # df_fact_inspirational_stories['view_count'] = pd.to_numeric(df_fact_inspirational_stories['view_count'], errors='coerce').astype('Int64')
-    
-
-    
     # Dapatkan tanggal saat ini dan tanggal kemarin
     current_date = datetime.now().date()
     yesterday_date = current_date - timedelta(days=1)
@@ -548,26 +523,6 @@ def transform_data(data_frames):
 
 @task
 def load_data(transformed_data):
-    # Set credentials
-    # credentials = service_account.Credentials.from_service_account_file('./serviceAccount.json')
-    # project_id = 'alterra-capstone-426112'
-    # dataset_id = 'data_engineer'
-
-    # client = bigquery.Client(project=project_id, credentials=credentials)
-
-    # for table_name, df in transformed_data.items():
-    #     table_id = f'{project_id}.{dataset_id}.{table_name}'
-
-    #     if table_name.startswith('dim_'):
-    #         df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='replace', credentials=credentials)
-    #     else:
-    #         # Keep duplicates if the table starts with 'fact_'
-    #         df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='replace', credentials=credentials)
-
-    #     # Load data to BigQuery using Pandas to_gbq
-
-    #     # Optionally, ensure the table exists
-    #     client.create_table(table_id, exists_ok=True)
 
     credentials = service_account.Credentials.from_service_account_file('./serviceAccount.json')
     project_id = 'alterra-capstone-426112'
