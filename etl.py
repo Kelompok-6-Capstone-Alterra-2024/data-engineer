@@ -549,7 +549,27 @@ def transform_data(data_frames):
 @task
 def load_data(transformed_data):
     # Set credentials
-    credentials = service_account.Credentials.from_service_account_file('./de.json')
+    # credentials = service_account.Credentials.from_service_account_file('./serviceAccount.json')
+    # project_id = 'alterra-capstone-426112'
+    # dataset_id = 'data_engineer'
+
+    # client = bigquery.Client(project=project_id, credentials=credentials)
+
+    # for table_name, df in transformed_data.items():
+    #     table_id = f'{project_id}.{dataset_id}.{table_name}'
+
+    #     if table_name.startswith('dim_'):
+    #         df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='replace', credentials=credentials)
+    #     else:
+    #         # Keep duplicates if the table starts with 'fact_'
+    #         df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='replace', credentials=credentials)
+
+    #     # Load data to BigQuery using Pandas to_gbq
+
+    #     # Optionally, ensure the table exists
+    #     client.create_table(table_id, exists_ok=True)
+
+    credentials = service_account.Credentials.from_service_account_file('./serviceAccount.json')
     project_id = 'alterra-capstone-426112'
     dataset_id = 'data_engineer'
 
@@ -558,16 +578,29 @@ def load_data(transformed_data):
     for table_name, df in transformed_data.items():
         table_id = f'{project_id}.{dataset_id}.{table_name}'
 
+        # Memeriksa apakah tabel sudah ada
+        table_ref = client.dataset(dataset_id).table(table_name)
+        try:
+            client.get_table(table_ref)
+        except Exception as e:
+            print(f"Tabel {table_id} tidak ada. Membuat tabel baru.")
+            schema = []  # Definisikan skema jika diperlukan
+            table = bigquery.Table(table_ref, schema=schema)
+            client.create_table(table)  # Buat tabel jika belum ada
+
+        # Memeriksa awalan tabel dan menentukan write disposition
         if table_name.startswith('dim_'):
-            df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='replace', credentials=credentials)
+            # Tabel dim_: replace data
+            job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+        elif table_name.startswith('fact_'):
+            # Tabel fact_: tambahkan data baru tanpa mengupdate yang sudah ada
+            job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
         else:
-            # Keep duplicates if the table starts with 'fact_'
-            df.to_gbq(destination_table=table_id, project_id=project_id, if_exists='append', credentials=credentials)
+            # Default: replace data
+            job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
 
-        # Load data to BigQuery using Pandas to_gbq
-
-        # Optionally, ensure the table exists
-        client.create_table(table_id, exists_ok=True)
+        # Memuat data ke tabel
+        client.load_table_from_dataframe(df, table_id, job_config=job_config)
 
 @flow(task_runner=SequentialTaskRunner())
 def etl_flow():
